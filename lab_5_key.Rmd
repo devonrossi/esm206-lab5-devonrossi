@@ -2,29 +2,109 @@
 title: "Lab 5"
 author: "Devon Rossi"
 date: "10/26/2021"
-output: html_document
+output: 
+  html_document: 
+    theme: cerulean
+    number_sections: yes
+    code_folding: hide
+    toc: yes
 ---
+#Setup
+```{r setup, include= TRUE, warning = FALSE, message = FALSE}
 
-```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#Confidence Intervals
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+In this section, we'll learn to use the 't.test()' function as a way to return the confidence interval using t-distribution.
 
-```{r cars}
-summary(cars)
+## Example 1
+
+Create a mock sample of observation values, and find the confidence interval. Then we'll learn how to report that.
+
+```{r}
+#QUESTION: do I think the sample I've collected is representative of pop I'm studying?
+# How are these values distributed & do these values make sense?
+# Normal underlying distribution -> time to find CI 
+
+pika_mass <- c(82, 94, 110, 70, 86, 99, 102, 320, 5000)
+
+pika_mean <- mean(pika_mass)
+
+pika_sd <- sd(pika_mass)
+
+pika_ci <- t.test(pika_mass)
+
+pika_ci
+
+#Run in console (pika_ci)
+# Look in Env -> List of values
+# t-value: converted mean value from how far away it is from null hypothesis of ZERO on a t-distribution
 ```
 
-## Including Plots
+### Risky & Tedious way :o
+~ due to human error, doesn't update when we change values ~
 
-You can also embed plots, for example:
+Mean pika mass at Paiute Pass is 91.9 g $\pm$ 13.5 g 
+(mean $\pm$ 1 standard deviation, n = 7) with a 95% confidence interval of [79.4, 104.4] g.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+### A high initial investment, but safer and better way :)
+
+In-line code referecing to stored objects!
+
+Use a single backtick on either side of a lowercase r to create an in-line bit of code.
+
+Mean pika mass at Paiute Pass is `r round(pika_mean, 1)` g $\pm$ `r round(pika_sd, 1)` g (mean $\pm$ 1 standard deviation, n = `r length(pika_mass)`) with a 95% confidence interval of [`r round (pika_ci$conf.int[1], 1)`, `r round(pika_ci$conf.int[2], 1)`] g.
+
+### Indexing
+- To pull a value from pika_mass, for example, go to Console
+- To find 94 g, use pika_mass[2] since it is the second value
+
+# Two-sample t-test
+
+Use a two-sample t-test to test the null hypothesis that samples were drawn from populations with the same mean (difference in means = 0).
+
+- H0: Means difference = 0
+- HA: Means difference in NOT = 0
+
+This is a two-sided t-test because no directionality is applied.
+
+## Example 1
+
+```{r}
+# we think a t-test is a responsible way to answer the question: do we think these samples are drawn from a sample w/ the same mean?
+
+oak_trees <- c(29, 19, 22, 30, 35, 16, 20, 7)
+
+pine_trees <- c(48, 32, 41, 40, 56, 70, 30, 19, 20)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Is there a significant difference in mean heights for oak and pine trees?
+
+```{r}
+trees_t <- t.test(oak_trees, pine_trees)
+
+```
+
+The p-value of `r trees_t$p.value` means that ...
+p-value: 0.01843 
+
+`r (trees_t$p.value) * 100`% chance of finding sample means *at least as different as those I found* by random chance if they were drawn from populations with the same mean height.
+
+On a t-distrubtion, how far away from null hypothesis - probability associated w that happening is not likely (only 1.8% chance) ... low p-value indicates that it is UNLIKELY that trees are taken from populations with the same mean height 
+
+integrating under t-distribution beyond value of t-statistic in either direction
+
+2/100 times -> we would expect to find sample means that are AT LEAST AS DIFF as sample means found - possible, but so unlikely to happen by random chance -> more likely drawn from pops w different means to begin with
+
+probably started off in populations w/ different means to start with so we REJECT the null hypothesis (cutoff is 5%, or p-value of 0.05)
+
+
+## Example 2
+
+Using the `mpg` dataset to compare city gas mileage for SUVs and compact cars.
